@@ -2,9 +2,17 @@ package me.kuma.leagueoflegendsaichat.domain.model;
 
 public record Champion(
         Long id,
-        String nome,
+        String name,
         String role,
         String lore,
         String imageUrl
 ) {
+    public String generateContextByQuestion(String question){
+        return """
+                Pergunta: %s
+                Nome do Campeao: %s
+                Funcao: %s
+                Lore: %s
+                """.formatted(question, this.name, this.role, this.lore);
+    }
 }
