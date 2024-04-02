@@ -3,6 +3,7 @@ package me.kuma.leagueoflegendsaichat;
 import me.kuma.leagueoflegendsaichat.application.AskChampionUseCase;
 import me.kuma.leagueoflegendsaichat.application.ListChampionsUseCase;
 import me.kuma.leagueoflegendsaichat.domain.ports.ChampionRepository;
+import me.kuma.leagueoflegendsaichat.domain.ports.GenerativeAiService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,7 @@ public class LeagueoflegendsAiChatApplication {
     }
 
     @Bean
-    public AskChampionUseCase provideAskChampionUseCase(ChampionRepository repository) {
-        return new AskChampionUseCase(repository);
+    public AskChampionUseCase provideAskChampionUseCase(ChampionRepository repository, GenerativeAiService genAiApi) {
+        return new AskChampionUseCase(repository, genAiApi);
     }
 }
