@@ -1,12 +1,17 @@
 package me.kuma.leagueoflegendsaichat.adapters.out;
 
+import feign.FeignException;
+import feign.RequestInterceptor;
 import me.kuma.leagueoflegendsaichat.domain.ports.GenerativeAiService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.PostMapping;
-
+import org.springframework.http.HttpHeaders;
 import java.util.List;
-
-@FeignClient(name = "openAiChatApi", url = "${openai.base-url}")
+@ConditionalOnProperty(name = "spring.generative-ai.provider", havingValue = "OPENAI", matchIfMissing = true)
+@FeignClient(name = "openAiApi", url = "${openai.base-url}", configuration = OpenAiChatService.Config.class)
 public interface OpenAiChatService extends GenerativeAiService {
 
     @PostMapping("/v1/chat/completions")
@@ -21,10 +26,15 @@ public interface OpenAiChatService extends GenerativeAiService {
                 new Message("user", context)
         );
         OpenAiChatCompletionReq req = new OpenAiChatCompletionReq(model, messages);
-
+        try{
         OpenAiChatCompletionResp resp = chatCompletion(req);
 
-        return resp.choices().getFirst().message().content();
+        return resp.choices().get(0).message().content();
+        } catch (FeignException httpErrors){
+            return "Erro de comunicacao com a API OpenAI.";
+        }catch (Exception unexpectedError){
+            return "O retorno da API OpenAI nao contem os dados esperados.";
+        }
     }
 
 
@@ -35,5 +45,15 @@ public interface OpenAiChatService extends GenerativeAiService {
     record OpenAiChatCompletionResp(List<Choice> choices){}
 
     record Choice(Message message){}
+
+
+
+        class Config{
+            @Bean
+            public RequestInterceptor apiKeyRequestInterceptor(@Value("${openai.api-key}") String apiKey){
+            return requestTemplate -> requestTemplate.header(
+                    HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(apiKey));
+            }
+        }
     }
 
